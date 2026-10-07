@@ -197,3 +197,68 @@ class ProductRepository:
             connection.close() 
         
 
+    def update(self , id : int , product  ) : 
+        connection = get_connection() 
+
+        try : 
+            with connection.cursor() as cursor : 
+                cursor.execute(
+                    '''
+                    UPDATE products 
+                    SET 
+                        product_name = %s , 
+                        category = %s , 
+                        cost_price = %s ,
+                        quantity = %s ,
+                        stock_value = %s ,
+                        margin = %s ,
+                        selling_price = %s ,
+                        sale_value = %s ,
+                        profit_per_item = %s ,
+                        expected_profit = %s
+                    WHERE product_id = %s 
+                    RETURNING product_id 
+                    ''' , (product.product_name ,
+                            product.category ,
+                            product.cost_price ,
+                            product.quantity ,
+                            product.stock_value ,
+                            product.margin ,
+                            product.selling_price ,
+                            product.sale_value ,
+                            product.profit_per_item ,
+                            product.expected_profit ,
+                            id)
+                )
+                connection.commit() 
+                product_id = cursor.fetchone()[0] 
+
+                return {
+                    'message' : 'product updated successfully' , 
+                    'product_id' : product_id
+                } 
+            
+        except Exception as error :  
+            connection.rollback() 
+            raise DataBaseException(f"Database operation failed: {error}") 
+
+        finally :
+            connection.close() 
+
+
+
+
+
+
+
+# class ProductData(BaseModel):
+#     product_name: str
+#     category: str
+#     cost_price: float
+#     quantity: int
+#     stock_value: float
+#     margin: float
+#     selling_price: float
+#     sale_value: float
+#     profit_per_item: float
+#     expected_profit: float

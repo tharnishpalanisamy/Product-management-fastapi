@@ -32,3 +32,11 @@ class ProductData(BaseModel):
     sale_value: float
     profit_per_item: float
     expected_profit: float
+
+
+
+class ProductUpdate(BaseModel) : 
+    product_name : str 
+    cost_price : float 
+    category:str 
+    quantity : int = Field(ge=1)
