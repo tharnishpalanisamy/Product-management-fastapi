@@ -1,0 +1,2 @@
+class DataBaseException(Exception) :
+    pass 
