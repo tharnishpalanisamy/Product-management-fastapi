@@ -1,11 +1,12 @@
 from database.connection import get_connection 
-from exceptions import DataBaseException , ProductNotFoundException
+from exceptions import DataBaseException , ProductNotFoundException 
+from models import ProductData
 
 class ProductRepository:
     def __init__(self) : 
         pass  
 
-    def create(self, product_data ):
+    def create(self, product_data:ProductData ):
         #database 
         connection = get_connection() 
         cursor = connection.cursor() 
@@ -249,21 +250,3 @@ class ProductRepository:
 
         finally :
             connection.close() 
-
-
-
-
-
-
-
-# class ProductData(BaseModel):
-#     product_name: str
-#     category: str
-#     cost_price: float
-#     quantity: int
-#     stock_value: float
-#     margin: float
-#     selling_price: float
-#     sale_value: float
-#     profit_per_item: float
-#     expected_profit: float

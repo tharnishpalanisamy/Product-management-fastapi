@@ -1,5 +1,6 @@
 from repositories.product_repository import ProductRepository 
-from schemas.product import ProductCreate , ProductData  , ProductUpdate
+from schemas.product import ProductCreate , ProductUpdate 
+from models import ProductData
 from fastapi import HTTPException  
 from exceptions import InvalidCategoryException  , ProductNotFoundException
 
@@ -73,6 +74,7 @@ class ProductService:
             raise InvalidCategoryException(
                 f"Invalid category. Choose from: {list(MARGIN.keys())}"
             )
+        
         margin = MARGIN[product_data.category] 
         selling_price = product_data.cost_price + (product_data.cost_price * margin / 100) 
         sales_value = selling_price * product_data.quantity
