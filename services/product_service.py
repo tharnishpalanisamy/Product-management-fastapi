@@ -57,8 +57,8 @@ class ProductService:
         
 
 
-    def get_all_products(self) :
-        response = self.product_repository.get_all() 
+    def get_all_products(self , filters = None ) :
+        response = self.product_repository.get_all(filters = filters) 
         return response 
 
     def get_product_by_id(self , product_id :int ) ->dict  :
@@ -99,7 +99,7 @@ class ProductService:
                 quantity=quantity
             ) 
 
-        response = self.product_repository.patch(id=product_id , product = product)
+        response = self.product_repository.update(id=product_id , product = product)
 
         return response
 

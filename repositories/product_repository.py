@@ -1,12 +1,13 @@
 from database.connection import get_connection 
 from exceptions import DataBaseException , ProductNotFoundException 
-from models import ProductData
+from models import ProductData 
+from database.queries import GET_QUERY 
 
 class ProductRepository:
     def __init__(self) : 
         pass  
 
-    def create(self, product_data:ProductData ):
+    def create(self, product_data:ProductData   ):
         #database 
         connection = get_connection() 
         cursor = connection.cursor() 
@@ -72,27 +73,41 @@ class ProductRepository:
 
 
 
-    def get_all(self):
+    def get_all(self , filters = None ):
         connection = get_connection() 
         cursor = connection.cursor() 
 
         try : 
+
+            query = GET_QUERY 
+            conditions = [] 
+            values = []
+            if filters :
+                 
+                for key in filters : 
+
+                    if key == 'product_name' : 
+                        conditions.append(f" {key} ILIKE %s ") 
+                        values.append(f"%{filters[key]}%") 
+                        continue 
+                    if key == 'min_quantity' : 
+                        conditions.append(f" quantity >= %s ") 
+                        values.append(filters[key]) 
+                        continue
+
+                    if key == 'max_quantity' : 
+                        conditions.append(f" quantity <= %s ") 
+                        values.append(filters[key]) 
+                        continue
+                    
+
+                    conditions.append(f" {key} = %s ") 
+                    values.append(filters[key]) 
+                query += ' WHERE ' + ' AND '.join(conditions) 
+
+
             cursor.execute(
-                '''
-                SELECT 
-                    product_id , 
-                    product_name , 
-                    category , 
-                    cost_price , 
-                    quantity, 
-                    stock_value , 
-                    margin ,
-                    selling_price , 
-                    sale_value , 
-                    profit_per_item ,
-                    expected_profit 
-                FROM products 
-                '''
+                query , tuple(values) 
             )
 
             rows = cursor.fetchall()  
@@ -260,59 +275,59 @@ class ProductRepository:
             connection.close()
 
 
-    def patch(self, id , product) :
+    # def patch(self, id , product) :
 
-        connection = get_connection() 
-        try :
-            with connection.cursor() as cursor :  
+    #     connection = get_connection() 
+    #     try :
+    #         with connection.cursor() as cursor :  
 
-                cursor.execute(
-                    '''
-                    UPDATE products 
-                    SET 
-                        product_name = %s , 
-                        category = %s , 
-                        cost_price = %s ,
-                        quantity = %s ,
-                        stock_value = %s ,
-                        margin = %s ,
-                        selling_price = %s ,
-                        sale_value = %s ,
-                        profit_per_item = %s ,
-                        expected_profit = %s
-                    WHERE product_id = %s 
-                    RETURNING product_id 
-                    ''' , (product.product_name ,
-                            product.category ,
-                            product.cost_price ,
-                            product.quantity ,
-                            product.stock_value ,
-                            product.margin ,
-                            product.selling_price ,
-                            product.sale_value ,
-                            product.profit_per_item ,
-                            product.expected_profit ,
-                            id)
-                )
+    #             cursor.execute(
+    #                 '''
+    #                 UPDATE products 
+    #                 SET 
+    #                     product_name = %s , 
+    #                     category = %s , 
+    #                     cost_price = %s ,
+    #                     quantity = %s ,
+    #                     stock_value = %s ,
+    #                     margin = %s ,
+    #                     selling_price = %s ,
+    #                     sale_value = %s ,
+    #                     profit_per_item = %s ,
+    #                     expected_profit = %s
+    #                 WHERE product_id = %s 
+    #                 RETURNING product_id 
+    #                 ''' , (product.product_name ,
+    #                         product.category ,
+    #                         product.cost_price ,
+    #                         product.quantity ,
+    #                         product.stock_value ,
+    #                         product.margin ,
+    #                         product.selling_price ,
+    #                         product.sale_value ,
+    #                         product.profit_per_item ,
+    #                         product.expected_profit ,
+    #                         id)
+    #             )
 
-                updated_product = cursor.fetchone()
+    #             updated_product = cursor.fetchone()
 
-                if updated_product is None:
-                    raise ProductNotFoundException(
-                        f"Product with id {id} not found"
-                    )
+    #             if updated_product is None:
+    #                 raise ProductNotFoundException(
+    #                     f"Product with id {id} not found"
+    #                 )
 
-                updated_product = updated_product[0]
+    #             updated_product = updated_product[0]
 
-                connection.commit() 
-                return {
-                    'message' : 'Product updated successfullyl' , 
-                    'product_id' : updated_product 
-                }
+    #             connection.commit() 
+    #             return {
+    #                 'message' : 'Product updated successfullyl' , 
+    #                 'product_id' : updated_product 
+    #             }
 
-        except Exception as error :
-            connection.rollback() 
-            raise DataBaseException(f"Database operation failed: {error}")
+    #     except Exception as error :
+    #         connection.rollback() 
+    #         raise DataBaseException(f"Database operation failed: {error}")
 
-        finally :
-            connection.close() 
+    #     finally :
+    #         connection.close() 

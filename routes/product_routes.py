@@ -1,8 +1,8 @@
-from fastapi import APIRouter 
+from fastapi import APIRouter , status
 from schemas.product import (
     ProductCreate , ProductUpdate , ProductPatch , ProductResponse , ProductOperationResponse
 )
-from services.product_service import ProductService
+from services.product_service import ProductService 
 
 router = APIRouter(
     prefix="/api/products", 
@@ -12,8 +12,30 @@ router = APIRouter(
 product_service = ProductService() 
 
 @router.get('/' , response_model=list[ProductResponse]) 
-def get_products():
-    response = product_service.get_all_products()
+def get_products(
+    product_name:str|None = None ,
+    category:str|None = None , 
+    min_quantity : int | None = None , 
+    max_quantity : int | None = None 
+): 
+
+
+    filters = { 
+    }
+    if product_name :
+        filters['product_name'] = product_name 
+
+    if category :
+        filters['category'] = category 
+
+    if min_quantity :
+        filters['min_quantity'] = min_quantity 
+
+    if max_quantity :
+        filters['max_quantity'] = max_quantity 
+
+
+    response = product_service.get_all_products(filters=filters)
     return response 
 
 @router.get('/{product_id}' , response_model=ProductResponse )  
@@ -22,7 +44,7 @@ def get_product(product_id:int) :
     return response 
  
 
-@router.post('/' , response_model=ProductOperationResponse) 
+@router.post('/' , response_model=ProductOperationResponse , status_code=status.HTTP_201_CREATED) 
 def create_product(product_data:ProductCreate) :  
     response = product_service.create_product(product_data)
     return response  
