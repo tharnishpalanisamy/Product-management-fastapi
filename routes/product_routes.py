@@ -3,7 +3,8 @@ from schemas.product import ProductCreate , ProductUpdate
 from database.connection import get_connection  
 from services.product_service import ProductService
 
-router = APIRouter()  
+router = APIRouter(
+prefix= "api/products", tag=["product services"])  
 product_service = ProductService() 
 
 @router.get('/products' ) 
