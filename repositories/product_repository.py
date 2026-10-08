@@ -191,8 +191,9 @@ class ProductRepository:
                 
                 connection.commit()  
 
-                return {
-                    'message' : f'Product with id {id} is deleted successfully'
+                return { 
+                    'message' : f'Product deleted successfully' ,
+                    'product_id' : id 
                 }  
 
         except Exception as error : 

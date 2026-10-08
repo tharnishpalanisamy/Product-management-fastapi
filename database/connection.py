@@ -1,11 +1,11 @@
 import psycopg
-
+from config import setting
 
 def get_connection():
     return psycopg.connect(
-        host="localhost",
-        port=5432,
-        dbname="product_management",
-        user="postgres",
-        password="G2tech@123$%^"
+        host=setting.db_host,
+        port=setting.db_port,
+        dbname=setting.db_name,
+        user=setting.db_user,
+        password=setting.db_password
     )

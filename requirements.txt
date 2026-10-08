@@ -1,5 +1,5 @@
 fastapi
 uvicorn
 pydantic
+psycopg[binary]
 pytest
-psycopg2-binary
