@@ -169,6 +169,12 @@ class ProductRepository:
 
 
     def delete(self , id : int ) :
+
+        product = self.get_by_id(id) 
+
+        if not product :
+            raise ProductNotFoundException(f'Product with id {id} not found !')
+
         connection = get_connection() 
 
         try :
@@ -179,10 +185,9 @@ class ProductRepository:
                     DELETE 
                     FROM products 
                     WHERE product_id = %s 
-                    RETURNING product_id 
                     ''' , (id , )  
                 ) 
-
+                
                 connection.commit()  
 
                 return {
@@ -237,7 +242,7 @@ class ProductRepository:
                     'message' : 'product updated successfully' , 
                     'product_id' : product_id
                 } 
-            
+        
         except Exception as error :  
             connection.rollback() 
             raise DataBaseException(f"Database operation failed: {error}") 
