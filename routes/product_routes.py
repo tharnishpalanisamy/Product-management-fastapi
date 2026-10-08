@@ -2,7 +2,8 @@ from fastapi import APIRouter , status
 from schemas.product import (
     ProductCreate , ProductUpdate , ProductPatch , ProductResponse , ProductOperationResponse
 )
-from services.product_service import ProductService 
+from services.product_service import ProductService  
+from utilities.utilities import create_filters
 
 router = APIRouter(
     prefix="/api/products", 
@@ -16,24 +17,22 @@ def get_products(
     product_name:str|None = None ,
     category:str|None = None , 
     min_quantity : int | None = None , 
-    max_quantity : int | None = None 
+    max_quantity : int | None = None , 
+    min_cost:int | None = None , 
+    max_cost:int | None = None 
 ): 
 
 
-    filters = { 
-    }
-    if product_name :
-        filters['product_name'] = product_name 
+    user_filters = { 
+        'product_name' : product_name , 
+        'category' : category , 
+        'min_quantity' : min_quantity , 
+        'max_quantity' : max_quantity , 
+        'min_cost' : min_cost , 
+        'max_cost' : max_cost 
+    } 
 
-    if category :
-        filters['category'] = category 
-
-    if min_quantity :
-        filters['min_quantity'] = min_quantity 
-
-    if max_quantity :
-        filters['max_quantity'] = max_quantity 
-
+    filters = create_filters(user_filters)
 
     response = product_service.get_all_products(filters=filters)
     return response 

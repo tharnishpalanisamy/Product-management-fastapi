@@ -98,6 +98,16 @@ class ProductRepository:
                     if key == 'max_quantity' : 
                         conditions.append(f" quantity <= %s ") 
                         values.append(filters[key]) 
+                        continue 
+
+                    if key == 'min_cost' :
+                        conditions.append(f" cost_price >= %s ") 
+                        values.append(filters[key]) 
+                        continue
+
+                    if key == 'max_cost' :
+                        conditions.append(f" cost_price <= %s ") 
+                        values.append(filters[key]) 
                         continue
                     
 
