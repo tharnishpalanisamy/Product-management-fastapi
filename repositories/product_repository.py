@@ -52,7 +52,7 @@ class ProductRepository:
                     product_data.expected_profit
                     )
             )
-            product_id = cursor.fetchone()[0]
+            product_id = cursor.fetchone()[0] 
             connection.commit() 
     
             return {
@@ -204,6 +204,13 @@ class ProductRepository:
         
 
     def update(self , id : int , product  ) : 
+
+        existing_product = self.get_by_id(id) 
+
+        if not existing_product :
+            raise ProductNotFoundException(f'Product with id {id} not found !')
+
+        
         connection = get_connection() 
 
         try : 
@@ -247,6 +254,64 @@ class ProductRepository:
         except Exception as error :  
             connection.rollback() 
             raise DataBaseException(f"Database operation failed: {error}") 
+
+        finally :
+            connection.close()
+
+
+    def patch(self, id , product) :
+
+        connection = get_connection() 
+        try :
+            with connection.cursor() as cursor :  
+
+                cursor.execute(
+                    '''
+                    UPDATE products 
+                    SET 
+                        product_name = %s , 
+                        category = %s , 
+                        cost_price = %s ,
+                        quantity = %s ,
+                        stock_value = %s ,
+                        margin = %s ,
+                        selling_price = %s ,
+                        sale_value = %s ,
+                        profit_per_item = %s ,
+                        expected_profit = %s
+                    WHERE product_id = %s 
+                    RETURNING product_id 
+                    ''' , (product.product_name ,
+                            product.category ,
+                            product.cost_price ,
+                            product.quantity ,
+                            product.stock_value ,
+                            product.margin ,
+                            product.selling_price ,
+                            product.sale_value ,
+                            product.profit_per_item ,
+                            product.expected_profit ,
+                            id)
+                )
+
+                updated_product = cursor.fetchone()
+
+                if updated_product is None:
+                    raise ProductNotFoundException(
+                        f"Product with id {id} not found"
+                    )
+
+                updated_product = updated_product[0]
+
+                connection.commit() 
+                return {
+                    'message' : 'Product updated successfullyl' , 
+                    'product_id' : updated_product 
+                }
+
+        except Exception as error :
+            connection.rollback() 
+            raise DataBaseException(f"Database operation failed: {error}")
 
         finally :
             connection.close() 

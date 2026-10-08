@@ -25,3 +25,10 @@ class ProductUpdate(BaseModel) :
     cost_price : float 
     category:str 
     quantity : int = Field(ge=1)
+
+
+class ProductPatch(BaseModel) :
+    product_name : str | None = None 
+    cost_price : float | None = Field(default=None , ge=1)  
+    category : str | None = None 
+    quantity : int | None = Field(default=None , ge=1) 

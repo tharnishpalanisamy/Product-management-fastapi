@@ -10,4 +10,5 @@ class ProductData(BaseModel):
     selling_price: float
     sale_value: float
     profit_per_item: float
-    expected_profit: float
+    expected_profit: float 
+
