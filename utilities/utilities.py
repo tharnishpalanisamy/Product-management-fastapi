@@ -10,9 +10,9 @@ MARGIN = {
 }
 
 ALLOWED_COLS = {
-    'product_id' , 'product_name' , 'cost_price' , 'margin' ,
+    'id' , 'product_name' , 'cost_price' , 'margin' ,
     'selling_price' , 'sale_value' , 'profit_per_item' , 'expected_profit' , 
-    'quantity' , 'stock_value' , 'category'
+    'quantity' , 'stock_value' , 'category_id'
 }
 
 ALLOWED_SORT = {
@@ -25,10 +25,12 @@ def create_filters(filters:dict) :
     for key in filters : 
         if filters[key] : 
             if key == 'category' and filters[key] not in MARGIN  :
-                continue 
+                raise InvalidCategoryException(
+                                f"Invalid category. Choose from: {list(MARGIN.keys())}"
+                            )
             if key == 'order_by' and filters[key] not in ALLOWED_COLS :
                 raise InvalidCategoryException(
-                            f"Invalid category. Choose from: {list(ALLOWED_COLS)}"
+                            f"Invalid category to order by . Choose from: {list(ALLOWED_COLS)}"
                         ) 
             if key == 'sort_by' and filters[key].upper() not in ALLOWED_SORT :
                  raise InvalidCategoryException(

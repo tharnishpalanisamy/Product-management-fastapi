@@ -1,4 +1,4 @@
-from fastapi import APIRouter , status , Query
+from fastapi import APIRouter , status , Query , File , UploadFile 
 from schemas.product import (
     ProductCreate , ProductUpdate , ProductPatch , ProductResponse , ProductOperationResponse
 )
@@ -15,12 +15,12 @@ product_service = ProductService()
 @router.get('/' , response_model=list[ProductResponse]) 
 async def get_products(
     product_name:str|None = None ,
-    category:str|None = None , 
+    category_id:int|None = None , 
     min_quantity : int | None = None , 
     max_quantity : int | None = None , 
     min_cost:int | None = None , 
     max_cost:int | None = None , 
-    order_by : str = Query(default='product_id') , 
+    order_by : str = Query(default='id') , 
     limit : int = Query(default=10 , ge=1) , 
     offset:int = Query(default = 0 , ge=0) , 
     sort_by : str = 'ASC' 
@@ -30,7 +30,7 @@ async def get_products(
 
     user_filters = { 
         'product_name' : product_name , 
-        'category' : category , 
+        'category_id' : category_id , 
         'min_quantity' : min_quantity , 
         'max_quantity' : max_quantity , 
         'min_cost' : min_cost , 
@@ -56,6 +56,14 @@ async def get_product(product_id:int) :
 async def create_product(product_data:ProductCreate) :  
     response =await  product_service.create_product(product_data)
     return response  
+
+
+@router.post('/{product_id}/images') 
+async def upload_product_image(product_id : int , file : UploadFile = File()) : 
+    return {
+        "filename": file.filename,
+        "content_type": file.content_type
+    } 
 
 
 @router.delete('/{product_id}' , response_model=ProductOperationResponse) 

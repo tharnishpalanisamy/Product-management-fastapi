@@ -1,63 +1,49 @@
 GET_QUERY = '''
     SELECT 
-        product_id , 
-        product_name , 
-        category , 
-        cost_price , 
-        quantity, 
-        stock_value , 
-        margin ,
-        selling_price , 
-        sale_value , 
-        profit_per_item ,
-        expected_profit 
-    FROM products 
+        p.id as product_id , 
+        p.product_name , 
+        p.category_id ,
+        c.name as category_name, 
+        p.cost_price , 
+        p.quantity, 
+        p.cost_price * p.quantity as stock_value , 
+        c.margin ,
+        p.cost_price * ( 1 + c.margin/100.0 )  as selling_price , 
+        p.cost_price * ( 1 + c.margin/100.0 ) * p.quantity as sale_value , 
+        p.cost_price * ( 1 + c.margin/100.0 ) - p.cost_price as profit_per_item ,
+        ( p.cost_price * (1 + c.margin / 100.0) - p.cost_price) * p.quantity AS expected_profit
+
+    FROM products p 
+    JOIN categories c 
+    ON p.category_id = c.id 
 ''' 
 
 
 POST_QUERY = '''
     INSERT INTO products(
         product_name , 
-        category , 
         cost_price  , 
         quantity, 
-        stock_value , 
-        margin ,
-        selling_price , 
-        sale_value , 
-        profit_per_item ,
-        expected_profit 
+        category_id
     ) 
     VALUES(
         %s , 
         %s , 
         %s , 
-        %s , 
-        %s , 
-        %s , 
-        %s , 
-        %s , 
-        %s , 
         %s 
-    )
-    RETURNING product_id 
+    ) 
+    RETURNING id  
 '''
-
 
 
 UPDATE_QUERY = '''
     UPDATE products 
     SET 
         product_name = %s , 
-        category = %s , 
         cost_price = %s ,
         quantity = %s ,
-        stock_value = %s ,
-        margin = %s ,
-        selling_price = %s ,
-        sale_value = %s ,
-        profit_per_item = %s ,
-        expected_profit = %s
-    WHERE product_id = %s 
-    RETURNING product_id 
+        category_id = %s 
+
+    WHERE id = %s 
+    RETURNING id 
 '''

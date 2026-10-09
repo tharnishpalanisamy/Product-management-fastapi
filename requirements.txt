@@ -1,6 +1,5 @@
 fastapi
 uvicorn
-pydantic
 psycopg[binary]
-pytest
-pydantic_settings
+pydantic
+python-multipart

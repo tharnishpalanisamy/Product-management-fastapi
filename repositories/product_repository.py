@@ -1,52 +1,40 @@
 from database.connection import get_connection 
 from exceptions import DataBaseException , ProductNotFoundException 
-from models import ProductData 
+from schemas.product import ProductCreate
 from database.queries import GET_QUERY , POST_QUERY , UPDATE_QUERY
 
 class ProductRepository:
     def __init__(self) : 
         pass  
 
-    async def create(self, product_data:ProductData   ):
+    async def create(self, product_data:ProductCreate ):
         #database 
         connection = await get_connection() 
-        # cursor = connection.cursor() 
-        #insert 
-        try :
-            async with connection.cursor() as cursor:
-                await cursor.execute(
-                    POST_QUERY , (
-                        product_data.product_name , 
-                        product_data.category , 
-                        product_data.cost_price ,
-                        product_data.quantity ,
-                        product_data.stock_value ,
-                        product_data.margin ,
-                        product_data.selling_price ,
-                        product_data.sale_value ,
-                        product_data.profit_per_item ,
-                        product_data.expected_profit
-                        )
-                )
-                row = await cursor.fetchone() 
 
+        try :
+
+            async with connection.cursor() as cursor : 
+                await cursor.execute(POST_QUERY , (
+                    product_data.product_name , product_data.cost_price , product_data.quantity , product_data.category_id 
+                    )
+                ) 
+                row = await cursor.fetchone() 
                 product_id = row[0] 
                 await connection.commit() 
-        
+
                 return {
-                    'message': 'Product added successfully',
-                    'product_id': product_id
+                'message' : 'product created successfully' , 
+                'product_id' : product_id
                 }
-        
-        except Exception as error:  
-            await connection.rollback()   
+        except Exception as error :
             raise DataBaseException(
-                f"Database operation failed: {error}"
+                f'Database error occured {error}'
             )
-    
+
         finally :
-            await cursor.close() 
-            await connection.close()  
+            await connection.close() 
+
+
 
 
 
@@ -99,9 +87,9 @@ class ProductRepository:
                         query += " WHERE " + " AND ".join(conditions)  
 
                     if filters['sort_by'] == 'DESC' : 
-                        query += f" ORDER BY {filters['order_by']} DESC  "
+                        query += f" ORDER BY p.{filters['order_by']} DESC  "
                     else : 
-                        query += f" ORDER BY {filters['order_by']} "
+                        query += f" ORDER BY p.{filters['order_by']} "
 
                     query += " LIMIT %s "
                     values.append(filters["limit"]) 
@@ -136,7 +124,7 @@ class ProductRepository:
 
         try :
             async with connection.cursor() as cursor :
-                query = GET_QUERY  + ' WHERE product_id = %s '
+                query = GET_QUERY  + ' WHERE p.id = %s '
                 await cursor.execute(
                         query, (id , )
                     )
@@ -146,19 +134,19 @@ class ProductRepository:
                 if data is None : 
                     raise ProductNotFoundException(f'Product with id {id} not found ')
 
-
                 return {
-                    "product_id": data[0],
+                    "product_id": data[0], 
                     "product_name": data[1],
-                    "category": data[2],
-                    "cost_price": data[3],
-                    "quantity": data[4],
-                    "stock_value": data[5],
-                    "margin": data[6],
-                    "selling_price": data[7],
-                    "sale_value": data[8],
-                    "profit_per_item": data[9],
-                    "expected_profit": data[10]
+                    "category_id": data[2], 
+                    "category_name": data[3],
+                    "cost_price": data[4],
+                    "quantity": data[5], 
+                    "stock_value": data[6],
+                    "margin": data[7],
+                    "selling_price": data[8],
+                    "sale_value": data[9],
+                    "profit_per_item": data[10],
+                    "expected_profit": data[11]
                 } 
 
         except ProductNotFoundException as error :
@@ -188,7 +176,7 @@ class ProductRepository:
                     ''' 
                     DELETE 
                     FROM products 
-                    WHERE product_id = %s 
+                    WHERE id = %s 
                     ''' , (id , )  
                 ) 
                 
@@ -220,17 +208,9 @@ class ProductRepository:
         try : 
             async with connection.cursor() as cursor : 
                 await cursor.execute(
-                    UPDATE_QUERY , (product.product_name ,
-                            product.category ,
-                            product.cost_price ,
-                            product.quantity ,
-                            product.stock_value ,
-                            product.margin ,
-                            product.selling_price ,
-                            product.sale_value ,
-                            product.profit_per_item ,
-                            product.expected_profit ,
-                            id)
+                    UPDATE_QUERY , (
+                    product.product_name , product.cost_price , product.quantity , product.category_id  , id 
+                    )
                 )
                 
                 row = await cursor.fetchone()
