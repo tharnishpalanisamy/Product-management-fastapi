@@ -1,7 +1,7 @@
 from database.connection import get_connection 
 from exceptions import DataBaseException , ProductNotFoundException 
 from models import ProductData 
-from database.queries import GET_QUERY 
+from database.queries import GET_QUERY , POST_QUERY , UPDATE_QUERY
 
 class ProductRepository:
     def __init__(self) : 
@@ -15,33 +15,7 @@ class ProductRepository:
         try :
             async with connection.cursor() as cursor:
                 await cursor.execute(
-                    '''
-                    INSERT INTO products(
-                        product_name , 
-                        category , 
-                        cost_price  , 
-                        quantity, 
-                        stock_value , 
-                        margin ,
-                        selling_price , 
-                        sale_value , 
-                        profit_per_item ,
-                        expected_profit 
-                    ) 
-                    VALUES(
-                        %s , 
-                        %s , 
-                        %s , 
-                        %s , 
-                        %s , 
-                        %s , 
-                        %s , 
-                        %s , 
-                        %s , 
-                        %s 
-                    )
-                    RETURNING product_id 
-                    ''' , (
+                    POST_QUERY , (
                         product_data.product_name , 
                         product_data.category , 
                         product_data.cost_price ,
@@ -162,24 +136,9 @@ class ProductRepository:
 
         try :
             async with connection.cursor() as cursor :
-            
+                query = GET_QUERY  + ' WHERE product_id = %s '
                 await cursor.execute(
-                        '''
-                        SELECT 
-                            product_id , 
-                            product_name , 
-                            category , 
-                            cost_price , 
-                            quantity, 
-                            stock_value , 
-                            margin ,
-                            selling_price , 
-                            sale_value , 
-                            profit_per_item ,
-                            expected_profit 
-                        FROM products 
-                        WHERE product_id = %s
-                        ''' , (id , )
+                        query, (id , )
                     )
 
                 data = await cursor.fetchone() 
@@ -261,22 +220,7 @@ class ProductRepository:
         try : 
             async with connection.cursor() as cursor : 
                 await cursor.execute(
-                    '''
-                    UPDATE products 
-                    SET 
-                        product_name = %s , 
-                        category = %s , 
-                        cost_price = %s ,
-                        quantity = %s ,
-                        stock_value = %s ,
-                        margin = %s ,
-                        selling_price = %s ,
-                        sale_value = %s ,
-                        profit_per_item = %s ,
-                        expected_profit = %s
-                    WHERE product_id = %s 
-                    RETURNING product_id 
-                    ''' , (product.product_name ,
+                    UPDATE_QUERY , (product.product_name ,
                             product.category ,
                             product.cost_price ,
                             product.quantity ,

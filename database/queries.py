@@ -44,3 +44,20 @@ POST_QUERY = '''
 '''
 
 
+
+UPDATE_QUERY = '''
+    UPDATE products 
+    SET 
+        product_name = %s , 
+        category = %s , 
+        cost_price = %s ,
+        quantity = %s ,
+        stock_value = %s ,
+        margin = %s ,
+        selling_price = %s ,
+        sale_value = %s ,
+        profit_per_item = %s ,
+        expected_profit = %s
+    WHERE product_id = %s 
+    RETURNING product_id 
+'''
