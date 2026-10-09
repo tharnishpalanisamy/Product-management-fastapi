@@ -7,126 +7,146 @@ class ProductRepository:
     def __init__(self) : 
         pass  
 
-    def create(self, product_data:ProductData   ):
+    async def create(self, product_data:ProductData   ):
         #database 
-        connection = get_connection() 
-        cursor = connection.cursor() 
+        connection = await get_connection() 
+        # cursor = connection.cursor() 
         #insert 
         try :
-            cursor.execute(
-                '''
-                INSERT INTO products(
-                    product_name , 
-                    category , 
-                    cost_price  , 
-                    quantity, 
-                    stock_value , 
-                    margin ,
-                    selling_price , 
-                    sale_value , 
-                    profit_per_item ,
-                    expected_profit 
-                ) 
-                VALUES(
-                    %s , 
-                    %s , 
-                    %s , 
-                    %s , 
-                    %s , 
-                    %s , 
-                    %s , 
-                    %s , 
-                    %s , 
-                    %s 
-                )
-                RETURNING product_id 
-                ''' , (
-                    product_data.product_name , 
-                    product_data.category , 
-                    product_data.cost_price ,
-                    product_data.quantity ,
-                    product_data.stock_value ,
-                    product_data.margin ,
-                    product_data.selling_price ,
-                    product_data.sale_value ,
-                    product_data.profit_per_item ,
-                    product_data.expected_profit
+            async with connection.cursor() as cursor:
+                await cursor.execute(
+                    '''
+                    INSERT INTO products(
+                        product_name , 
+                        category , 
+                        cost_price  , 
+                        quantity, 
+                        stock_value , 
+                        margin ,
+                        selling_price , 
+                        sale_value , 
+                        profit_per_item ,
+                        expected_profit 
+                    ) 
+                    VALUES(
+                        %s , 
+                        %s , 
+                        %s , 
+                        %s , 
+                        %s , 
+                        %s , 
+                        %s , 
+                        %s , 
+                        %s , 
+                        %s 
                     )
-            )
-            product_id = cursor.fetchone()[0] 
-            connection.commit() 
-    
-            return {
-                'message': 'Product added successfully',
-                'product_id': product_id
-            }
-    
+                    RETURNING product_id 
+                    ''' , (
+                        product_data.product_name , 
+                        product_data.category , 
+                        product_data.cost_price ,
+                        product_data.quantity ,
+                        product_data.stock_value ,
+                        product_data.margin ,
+                        product_data.selling_price ,
+                        product_data.sale_value ,
+                        product_data.profit_per_item ,
+                        product_data.expected_profit
+                        )
+                )
+                row = await cursor.fetchone() 
+
+                product_id = row[0] 
+                await connection.commit() 
+        
+                return {
+                    'message': 'Product added successfully',
+                    'product_id': product_id
+                }
+        
         except Exception as error:  
-            connection.rollback()   
+            await connection.rollback()   
             raise DataBaseException(
                 f"Database operation failed: {error}"
             )
     
         finally :
-            cursor.close() 
-            connection.close()  
+            await cursor.close() 
+            await connection.close()  
 
 
 
-    def get_all(self , filters = None ):
-        connection = get_connection() 
-        cursor = connection.cursor() 
+    async def get_all(self , filters = None ):
+        connection = await get_connection() 
+        
 
         try : 
-
-            query = GET_QUERY 
-            conditions = [] 
-            values = []
-            if filters :
-                 
-                for key in filters : 
-
-                    if key == 'product_name' : 
-                        conditions.append(f" {key} ILIKE %s ") 
-                        values.append(f"%{filters[key]}%") 
-                        continue 
-                    if key == 'min_quantity' : 
-                        conditions.append(f" quantity >= %s ") 
-                        values.append(filters[key]) 
-                        continue
-
-                    if key == 'max_quantity' : 
-                        conditions.append(f" quantity <= %s ") 
-                        values.append(filters[key]) 
-                        continue 
-
-                    if key == 'min_cost' :
-                        conditions.append(f" cost_price >= %s ") 
-                        values.append(filters[key]) 
-                        continue
-
-                    if key == 'max_cost' :
-                        conditions.append(f" cost_price <= %s ") 
-                        values.append(filters[key]) 
-                        continue
+            async with connection.cursor() as cursor :
+                query = GET_QUERY 
+                conditions = [] 
+                values = []
+                if filters :
                     
+                    for key in filters : 
 
-                    conditions.append(f" {key} = %s ") 
-                    values.append(filters[key]) 
-                query += ' WHERE ' + ' AND '.join(conditions) 
+                        if key == 'product_name' : 
+                            conditions.append(f" {key} ILIKE %s ") 
+                            values.append(f"%{filters[key]}%") 
+                            continue  
+
+                        if key == 'category' : 
+                            conditions.append(f" {key} = %s ") 
+                            values.append(filters[key]) 
+                            continue
+
+                        if key == 'min_quantity' : 
+                            conditions.append(f" quantity >= %s ") 
+                            values.append(filters[key]) 
+                            continue
+
+                        if key == 'max_quantity' : 
+                            conditions.append(f" quantity <= %s ") 
+                            values.append(filters[key]) 
+                            continue 
+
+                        if key == 'min_cost' :
+                            conditions.append(f" cost_price >= %s ") 
+                            values.append(filters[key]) 
+                            continue
+
+                        if key == 'max_cost' :
+                            conditions.append(f" cost_price <= %s ") 
+                            values.append(filters[key]) 
+                            continue 
+
+                        
+                        
+                    if conditions:
+                        query += " WHERE " + " AND ".join(conditions)  
+
+                    if filters['sort_by'] == 'DESC' : 
+                        query += f" ORDER BY {filters['order_by']} DESC  "
+                    else : 
+                        query += f" ORDER BY {filters['order_by']} "
+
+                    query += " LIMIT %s "
+                    values.append(filters["limit"]) 
+
+                    query += " OFFSET %s "
+                    values.append(filters['offset']) 
 
 
-            cursor.execute(
-                query , tuple(values) 
-            )
+                await cursor.execute(
+                    query , tuple(values) 
+                )
 
-            rows = cursor.fetchall()  
+                rows = await cursor.fetchall()  
 
-            columns = [column[0] for column in cursor.description ] 
+                columns = [column[0] for column in cursor.description ] 
 
-            products = [dict(zip(columns , row)) for row in rows ]
+                products = [dict(zip(columns , row)) for row in rows ]
 
-            return products
+                return products
 
         except Exception as error :
              raise DataBaseException(
@@ -134,17 +154,16 @@ class ProductRepository:
             )
 
         finally :
-            cursor.close() 
-            connection.close() 
+            await connection.close() 
 
 
-    def get_by_id(self , id :int ) :
-        connection = get_connection() 
+    async def get_by_id(self , id :int ) :
+        connection = await get_connection() 
 
         try :
-            with connection.cursor() as cursor :
+            async with connection.cursor() as cursor :
             
-                cursor.execute(
+                await cursor.execute(
                         '''
                         SELECT 
                             product_id , 
@@ -163,7 +182,7 @@ class ProductRepository:
                         ''' , (id , )
                     )
 
-                data = cursor.fetchone() 
+                data = await cursor.fetchone() 
 
                 if data is None : 
                     raise ProductNotFoundException(f'Product with id {id} not found ')
@@ -191,22 +210,22 @@ class ProductRepository:
                 )  
         
         finally :
-            connection.close() 
+            await connection.close() 
 
 
-    def delete(self , id : int ) :
+    async def delete(self , id : int ) :
 
-        product = self.get_by_id(id) 
+        product = await self.get_by_id(id) 
 
         if not product :
             raise ProductNotFoundException(f'Product with id {id} not found !')
 
-        connection = get_connection() 
+        connection = await get_connection() 
 
         try :
-            with connection.cursor() as cursor : 
+            async with connection.cursor() as cursor : 
 
-                cursor.execute( 
+                await cursor.execute( 
                     ''' 
                     DELETE 
                     FROM products 
@@ -214,7 +233,7 @@ class ProductRepository:
                     ''' , (id , )  
                 ) 
                 
-                connection.commit()  
+                await connection.commit()  
 
                 return { 
                     'message' : f'Product deleted successfully' ,
@@ -222,26 +241,26 @@ class ProductRepository:
                 }  
 
         except Exception as error : 
-            connection.rollback() 
+            await connection.rollback() 
             raise DataBaseException(f"Database operation failed: {error}") 
 
         finally :
-            connection.close() 
+            await connection.close() 
         
 
-    def update(self , id : int , product  ) : 
+    async def update(self , id : int , product  ) : 
 
-        existing_product = self.get_by_id(id) 
+        existing_product = await self.get_by_id(id) 
 
         if not existing_product :
             raise ProductNotFoundException(f'Product with id {id} not found !')
 
         
-        connection = get_connection() 
+        connection = await get_connection() 
 
         try : 
-            with connection.cursor() as cursor : 
-                cursor.execute(
+            async with connection.cursor() as cursor : 
+                await cursor.execute(
                     '''
                     UPDATE products 
                     SET 
@@ -269,29 +288,30 @@ class ProductRepository:
                             product.expected_profit ,
                             id)
                 )
-                connection.commit() 
-                product_id = cursor.fetchone()[0] 
-
+                
+                row = await cursor.fetchone()
+                product_id = row[0]
+                await connection.commit() 
                 return {
                     'message' : 'product updated successfully' , 
                     'product_id' : product_id
                 } 
         
         except Exception as error :  
-            connection.rollback() 
+            await connection.rollback() 
             raise DataBaseException(f"Database operation failed: {error}") 
 
         finally :
-            connection.close()
+            await connection.close()
 
 
     # def patch(self, id , product) :
 
-    #     connection = get_connection() 
+    #     connection = await get_connection() 
     #     try :
     #         with connection.cursor() as cursor :  
 
-    #             cursor.execute(
+    #             await cursor.execute(
     #                 '''
     #                 UPDATE products 
     #                 SET 
@@ -320,7 +340,7 @@ class ProductRepository:
     #                         id)
     #             )
 
-    #             updated_product = cursor.fetchone()
+    #             updated_product = await cursor.fetchone()
 
     #             if updated_product is None:
     #                 raise ProductNotFoundException(
@@ -329,7 +349,7 @@ class ProductRepository:
 
     #             updated_product = updated_product[0]
 
-    #             connection.commit() 
+    #             await connection.commit() 
     #             return {
     #                 'message' : 'Product updated successfullyl' , 
     #                 'product_id' : updated_product 
@@ -340,4 +360,6 @@ class ProductRepository:
     #         raise DataBaseException(f"Database operation failed: {error}")
 
     #     finally :
-    #         connection.close() 
+    #         await connection.close() 
+
+

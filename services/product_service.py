@@ -44,7 +44,7 @@ class ProductService:
         return product 
 
 
-    def create_product(self , product_data:ProductCreate) : 
+    async def create_product(self , product_data:ProductCreate) : 
         product = self._create_product_data(
             product_name=product_data.product_name , 
             category=product_data.category ,
@@ -52,24 +52,24 @@ class ProductService:
             quantity=product_data.quantity
         )
 
-        response = self.product_repository.create(product)
+        response = await self.product_repository.create(product)
         return response
         
 
 
-    def get_all_products(self , filters = None ) :
-        response = self.product_repository.get_all(filters = filters) 
+    async def get_all_products(self , filters = None ) :
+        response = await self.product_repository.get_all(filters = filters) 
         return response 
 
-    def get_product_by_id(self , product_id :int ) ->dict  :
-        product = self.product_repository.get_by_id(product_id) 
+    async def get_product_by_id(self , product_id :int ) ->dict  :
+        product = await self.product_repository.get_by_id(product_id) 
         return product 
 
-    def delete_product_by_id(self,  product_id) :
-        response = self.product_repository.delete(product_id) 
+    async def delete_product_by_id(self,  product_id) :
+        response = await self.product_repository.delete(product_id) 
         return response 
 
-    def update_product(self , product_id : int , product_data :ProductUpdate  ) : 
+    async def update_product(self , product_id : int , product_data :ProductUpdate  ) : 
 
         product = self._create_product_data(
                     product_name=product_data.product_name , 
@@ -78,12 +78,12 @@ class ProductService:
                     quantity=product_data.quantity
                 )
 
-        return self.product_repository.update(product_id , product) 
+        return await self.product_repository.update(product_id , product) 
 
 
 
-    def patch_product(self , product_id :int , product_data:ProductPatch) : 
-        existing_product = self.product_repository.get_by_id(id=product_id) 
+    async def patch_product(self , product_id :int , product_data:ProductPatch) : 
+        existing_product = await self.product_repository.get_by_id(id=product_id) 
 
         updates = product_data.model_dump(exclude_unset=True) 
  
@@ -99,7 +99,7 @@ class ProductService:
                 quantity=quantity
             ) 
 
-        response = self.product_repository.update(id=product_id , product = product)
+        response = await self.product_repository.update(id=product_id , product = product)
 
         return response
 

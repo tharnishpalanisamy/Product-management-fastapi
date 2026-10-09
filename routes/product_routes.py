@@ -1,4 +1,4 @@
-from fastapi import APIRouter , status
+from fastapi import APIRouter , status , Query
 from schemas.product import (
     ProductCreate , ProductUpdate , ProductPatch , ProductResponse , ProductOperationResponse
 )
@@ -13,13 +13,18 @@ router = APIRouter(
 product_service = ProductService() 
 
 @router.get('/' , response_model=list[ProductResponse]) 
-def get_products(
+async def get_products(
     product_name:str|None = None ,
     category:str|None = None , 
     min_quantity : int | None = None , 
     max_quantity : int | None = None , 
     min_cost:int | None = None , 
-    max_cost:int | None = None 
+    max_cost:int | None = None , 
+    order_by : str = Query(default='product_id') , 
+    limit : int = Query(default=10 , ge=1) , 
+    offset:int = Query(default = 0 , ge=0) , 
+    sort_by : str = 'ASC' 
+    
 ): 
 
 
@@ -29,37 +34,41 @@ def get_products(
         'min_quantity' : min_quantity , 
         'max_quantity' : max_quantity , 
         'min_cost' : min_cost , 
-        'max_cost' : max_cost 
+        'max_cost' : max_cost , 
+        'order_by' : order_by , 
+        'sort_by' : sort_by , 
+        'limit' : limit , 
+        'offset' : offset
     } 
 
     filters = create_filters(user_filters)
 
-    response = product_service.get_all_products(filters=filters)
+    response = await product_service.get_all_products(filters=filters)
     return response 
 
 @router.get('/{product_id}' , response_model=ProductResponse )  
-def get_product(product_id:int) :
-    response = product_service.get_product_by_id(product_id)
+async def get_product(product_id:int) :
+    response = await product_service.get_product_by_id(product_id)
     return response 
  
 
 @router.post('/' , response_model=ProductOperationResponse , status_code=status.HTTP_201_CREATED) 
-def create_product(product_data:ProductCreate) :  
-    response = product_service.create_product(product_data)
+async def create_product(product_data:ProductCreate) :  
+    response =await  product_service.create_product(product_data)
     return response  
 
 
 @router.delete('/{product_id}' , response_model=ProductOperationResponse) 
-def delete_product(product_id : int ) :
-    response = product_service.delete_product_by_id(product_id=product_id) 
+async def delete_product(product_id : int ) :
+    response = await product_service.delete_product_by_id(product_id=product_id) 
     return response
 
 @router.put('/{product_id}' , response_model=ProductOperationResponse) 
-def update_product(product_id:int , product_data :ProductUpdate ) : 
-    response = product_service.update_product(product_id=product_id , product_data=product_data)
+async def update_product(product_id:int , product_data :ProductUpdate ) : 
+    response = await product_service.update_product(product_id=product_id , product_data=product_data)
     return response 
 
 @router.patch('/{product_id}' , response_model=ProductOperationResponse) 
-def patch_product(product_id:int , product_data:ProductPatch) :
-    response = product_service.patch_product(product_id=product_id , product_data=product_data) 
+async def patch_product(product_id:int , product_data:ProductPatch) :
+    response = await product_service.patch_product(product_id=product_id , product_data=product_data) 
     return response 
