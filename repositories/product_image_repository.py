@@ -1,5 +1,5 @@
 from database.connection import get_connection 
-from exceptions import DataBaseException , ProductNotFoundException
+from exceptions import DataBaseException 
 
 
 class ProductImageRepository :
@@ -7,7 +7,7 @@ class ProductImageRepository :
         pass
 
 
-    async def create(self , product_id : int , file_path :str , original_filename : str , content_type:str ) :
+    async def create(self , product_id : int , file_path :str , original_filename : str , content_type:str ,file_type: str ) :
         connection = await get_connection() 
 
         try :
@@ -17,19 +17,20 @@ class ProductImageRepository :
                 product = await cursor.fetchone() 
 
                 if not product:
-                    raise ProductNotFoundException(f'Product with id {product_id} not found ') 
-                 
+                    return None  
+                
                 await cursor.execute(
                     '''
                     INSERT INTO product_images (
                         product_id , 
-                        file_path , 
+                        file_type,
+                        file_path ,  
                         original_filename , 
                         content_type    
                     )
-                    VALUES (%s,%s,%s,%s) 
+                    VALUES (%s,%s,%s,%s , %s) 
                     RETURNING id 
-                    ''' , (product_id , file_path , original_filename , content_type)
+                    ''' , (product_id ,file_type ,  file_path , original_filename , content_type)
                 )
 
                 row = await cursor.fetchone() 
@@ -38,7 +39,8 @@ class ProductImageRepository :
 
                 return {
                     "image_id": image_id,
-                    "product_id": product_id,
+                    "product_id": product_id, 
+                    'file_type' : file_type , 
                     "file_path": file_path,
                     "original_filename": original_filename,
                     "content_type": content_type

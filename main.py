@@ -1,5 +1,6 @@
 from fastapi import FastAPI  
-from routes.product_routes import router as product_router
+from routes.product_routes import router as product_router 
+from routes.product_image_router import router as product_document_router
 from exceptions import (
     ProductNotFoundException , 
     InvalidCategoryException , 
@@ -15,6 +16,7 @@ from exception_handler.exception_handler import (
 app = FastAPI() 
 
 app.include_router(router=product_router)
+app.include_router(router = product_document_router)
 
 app.add_exception_handler(
     ProductNotFoundException , 

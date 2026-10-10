@@ -58,14 +58,6 @@ async def create_product(product_data:ProductCreate) :
     return response  
 
 
-@router.post('/{product_id}/images') 
-async def upload_product_image(product_id : int , file : UploadFile = File()) : 
-    return {
-        "filename": file.filename,
-        "content_type": file.content_type
-    } 
-
-
 @router.delete('/{product_id}' , response_model=ProductOperationResponse) 
 async def delete_product(product_id : int ) :
     response = await product_service.delete_product_by_id(product_id=product_id) 

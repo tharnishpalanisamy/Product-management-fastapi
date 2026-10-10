@@ -7,11 +7,11 @@ class ProductCreate(BaseModel) :
     category_id:int = Field(ge=1)
 
 
-class ProductImageCreate(BaseModel) :
-    product_id : int 
-    file_path:str 
-    original_filename:str 
-    content_type : str 
+# class ProductImageCreate(BaseModel) :
+#     product_id : int 
+#     file_path:str 
+#     original_filename:str 
+#     content_type : str 
 
 class ProductResponse(BaseModel) : 
     model_config = ConfigDict(from_attributes=True)

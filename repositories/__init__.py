@@ -1,0 +1,2 @@
+from .product_image_repository import ProductImageRepository 
+from .product_repository import ProductRepository 
