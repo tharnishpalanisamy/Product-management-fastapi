@@ -18,7 +18,7 @@ FILE_CONFIG = {
         'types' : {
             'application/pdf' : '.pdf' , 
             'application/msword' : '.doc',
-            'application/vnd.openxmlformats-officedocumentwordprocessingml.document' : '.docx'
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document": ".docx"
         } , 
         'max_size' : 10 * 1024 * 1024 
     }
