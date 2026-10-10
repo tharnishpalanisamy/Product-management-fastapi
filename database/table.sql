@@ -32,10 +32,8 @@ CREATE TABLE products (
 CREATE TABLE product_images (
     id SERIAL PRIMARY KEY,
     product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+    file_type VARCHAR(20) NOT NULL CHECK (file_type IN ('image', 'document')),
     file_path VARCHAR(500) NOT NULL,
     original_filename VARCHAR(255) NOT NULL,
     content_type VARCHAR(100) NOT NULL
-);
-
-
-
+)
