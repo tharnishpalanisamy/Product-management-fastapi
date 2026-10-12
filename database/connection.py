@@ -1,11 +1,24 @@
-from psycopg import AsyncConnection
-from config import setting
+from sqlalchemy import create_engine 
+from sqlalchemy.orm import sessionmaker
+from config import setting 
 
-async def get_connection():
-    return await AsyncConnection.connect(
-        host=setting.db_host,
-        port=setting.db_port,
-        dbname=setting.db_name,
-        user=setting.db_user,
-        password=setting.db_password
-    )
+engine = create_engine(setting.DATABASE_URL)
+
+SessionLocal = sessionmaker(
+    bind = engine , 
+    autoflush=False , 
+    autocommit = False 
+)
+
+
+def get_db() :
+    db = SessionLocal() 
+
+    try : 
+        yield db 
+    finally : 
+        db.close() 
+
+
+
+
