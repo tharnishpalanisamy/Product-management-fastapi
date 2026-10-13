@@ -4,3 +4,9 @@ class ProductNotFoundException(Exception) :
 
 class InvalidCategoryException(Exception):
     pass
+
+class MaximumSizeExceeded(Exception) :
+    pass
+
+class EmptyFileException(Exception) :
+    pass 
