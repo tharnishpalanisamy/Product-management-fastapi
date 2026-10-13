@@ -1,12 +1,14 @@
+from sqlalchemy import text
 
-from sqlalchemy.orm import configure_mappers
+from database.connection import engine
 
-from models import Category, Product, ProductImage
+try:
+    with engine.connect() as connection:
+        result = connection.execute(text("SELECT 1"))
+        print(result.scalar())
 
-configure_mappers()
+except Exception as exc:
+    print("Database connection failed:", exc)
 
-print("All SQLAlchemy models configured successfully!")
-
-print(Category.__tablename__)
-print(Product.__tablename__)
-print(ProductImage.__tablename__)
+finally:
+    engine.dispose()

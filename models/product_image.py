@@ -18,5 +18,5 @@ class ProductImage(Base) :
     content_type : Mapped[str] = mapped_column(String(100) , nullable=False) 
 
     product:Mapped['Product']  = relationship(
-        back_populates='images'
+        back_populates='files'
     )
