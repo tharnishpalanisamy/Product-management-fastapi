@@ -1,5 +1,5 @@
 from sqlalchemy import Integer , String , Numeric , ForeignKey
-from sqlalchemy.orm import DeclarativeBase , Mapped , mapped_column , relationship 
+from sqlalchemy.orm import  Mapped , mapped_column , relationship 
 # from models.category import Category 
 # from models.product_image import ProductImage
 from database.base import Base
@@ -20,4 +20,4 @@ class Product(Base) :
 
     files:Mapped[list['ProductImage']] = relationship(
         back_populates='product' , cascade='all, delete-orphan'
-    )
+    )                                                                                     
