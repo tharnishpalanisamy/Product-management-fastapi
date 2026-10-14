@@ -4,3 +4,5 @@ pydantic
 psycopg[binary]
 pytest
 pydantic_settings
+asyncpg 
+sqlalchemy[asyncio]

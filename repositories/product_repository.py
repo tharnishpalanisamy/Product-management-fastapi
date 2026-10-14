@@ -2,17 +2,18 @@ from models import Category , Product
 from sqlalchemy.orm import selectinload 
 from sqlalchemy import select
 from fastapi import HTTPException , status
+from sqlalchemy.ext.asyncio import AsyncSession
 
 class ProductRepository:
-    def __init__(self , db) :
+    def __init__(self , db:AsyncSession) :
         self.db = db 
 
-    def create(self , product_data) :
+    async def create(self , product_data) :
         statement = select(Category).where(
                 Category.id == product_data.category_id
             )
         
-        category = self.db.scalar(statement)
+        category = await self.db.scalar(statement)
     
         if category is None :
             raise  HTTPException(
@@ -29,36 +30,44 @@ class ProductRepository:
     
         try :
             self.db.add(product)
-            self.db.commit() 
-            self.db.refresh(product) 
+            await self.db.commit() 
+            await self.db.refresh(product) 
+
+            stmt = select(Product).options(
+                selectinload(Product.category),
+                selectinload(Product.files)
+            ).where(Product.id == product.id)
+            
+            fully_loaded_product = await self.db.scalar(stmt)
+            return fully_loaded_product
     
         except Exception:
-            self.db.rollback() 
+            await self.db.rollback() 
     
             raise HTTPException(
                 status_code = status.HTTP_500_INTERNAL_SERVER_ERROR , 
                 detail = 'Unexpected Error'
             )
-        return product 
+         
 
 
-    def get_all(self) :
+    async def get_all(self) :
         statement = select(Product).options(
             selectinload(Product.category) , 
             selectinload(Product.files)
         )
-        products = self.db.scalars(statement=statement).all() 
+        products = (await self.db.scalars(statement=statement)).all() 
     
         return products  
 
-    def get_by_id(self, id ) :
+    async def get_by_id(self, id ) :
         statement = select(Product).options(
             selectinload(Product.category) , 
             selectinload(Product.files)
         ).where(
             Product.id == id 
         )
-        product = self.db.scalar(statement=statement)
+        product =  await self.db.scalar(statement=statement)
     
         if product is None :
             raise HTTPException(
@@ -68,11 +77,11 @@ class ProductRepository:
     
         return product
 
-    def update(self , product_id , product_data) : 
+    async def update(self , product_id , product_data) : 
         statement = select(Product).where(
                 Product.id == product_id
             )
-        product = self.db.scalar(statement) 
+        product =  await self.db.scalar(statement) 
     
         if product is None :
             raise HTTPException(
@@ -86,20 +95,20 @@ class ProductRepository:
             product.quantity = product_data.quantity
             product.category_id = product_data.category_id 
     
-            self.db.commit() 
+            await self.db.commit() 
             return {
                 'message' : 'product updated successfully' , 
                 'id' : product_id
             }
         except Exception :
-            self.db.rollback() 
+            await self.db.rollback() 
             raise 
 
-    def patch(self, product_id , product_data) : 
+    async def patch(self, product_id , product_data) : 
         statement = select(Product).where(
                     Product.id == product_id
                 )
-        product = self.db.scalar(statement) 
+        product = await self.db.scalar(statement) 
     
         if product is None :
             raise HTTPException(
@@ -117,21 +126,21 @@ class ProductRepository:
             if product_data.category_id :
                 product.category_id = product_data.category_id 
     
-            self.db.commit() 
+            await self.db.commit() 
     
             return {
                 'message' : 'product updated successfully' , 
                 'id' : product_id
             }
         except :
-            self.db.rollback() 
+            await self.db.rollback() 
             raise  
 
-    def delete(self , id) :
+    async def delete(self , id) :
         statement = select(Product).where(
             Product.id == id
         )
-        product = self.db.scalar(statement) 
+        product = await self.db.scalar(statement) 
     
         if product is None :
             raise HTTPException(
@@ -139,8 +148,8 @@ class ProductRepository:
                 detail='item not found'
             )
         try : 
-            self.db.delete(product) 
-            self.db.commit() 
+            await self.db.delete(product) 
+            await self.db.commit() 
             # self.db.refresh(product) 
     
             return {
@@ -148,5 +157,6 @@ class ProductRepository:
                 'id' : id
             }
     
-        except Exception :
+        except Exception : 
+            await self.db.rollback() 
             raise 

@@ -1,6 +1,6 @@
 from pathlib import Path 
 from sqlalchemy.orm import Session
-from exceptions import InvalidCategoryException , MaximumSizeExceeded , EmptyFileException , ProductNotFoundException
+from exceptions import InvalidFileType , MaximumSizeExceeded , EmptyFileException , ProductNotFoundException
 from uuid import uuid4 
 from repositories.product_image_repository import ProductImageRepository
 
@@ -34,12 +34,12 @@ class ProductImageService:
     async def upload(self , product_id , file , file_type ) : 
 
         if file_type not in FILE_CONFIG :
-            raise InvalidCategoryException('File type not supported ! ') 
+            raise InvalidFileType('File type not supported ! ') 
         
         config = FILE_CONFIG[file_type]   
 
         if file.content_type not in config['types'] :
-            raise InvalidCategoryException('File type not supported ! ')
+            raise InvalidFileType('File type not supported ! ')
         
         max_size = config['max_size'] 
 
@@ -62,7 +62,7 @@ class ProductImageService:
             with file_path.open('wb') as destination :
                 destination.write(contents) 
 
-            result = self.product_image_repository.create(
+            result = await self.product_image_repository.create(
                 product_id=product_id , 
                 file_path=file_path.as_posix() , 
                 original_filename=Path(file.filename or 'upload').name , 

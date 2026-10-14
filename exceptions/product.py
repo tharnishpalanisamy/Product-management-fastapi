@@ -10,3 +10,6 @@ class MaximumSizeExceeded(Exception) :
 
 class EmptyFileException(Exception) :
     pass 
+
+class InvalidFileType(Exception) :
+    pass 

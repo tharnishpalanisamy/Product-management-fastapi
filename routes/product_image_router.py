@@ -18,7 +18,7 @@ async def create_product_image(product_id:int , file:UploadFile = File(...) , db
         product_id=product_id , 
         file=file , 
         file_type='image'
-    )
+    )   
 
 
 @router.post('/{product_id}/documents' ) 
