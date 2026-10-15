@@ -1,5 +1,6 @@
 from pydantic import BaseModel , Field , ConfigDict 
 from decimal import Decimal
+from typing import Literal
 
 class ProductCreate(BaseModel) :
     product_name : str = Field(min_length=2) 
@@ -51,3 +52,11 @@ class ProductPatch(BaseModel) :
     cost_price : Decimal | None = Field( default=None ,ge = 1 , max_digits=12 , decimal_places=2) 
     quantity : int | None = Field( default=None ,ge = 1 ) 
     category_id : int | None = Field(default=None , ge=1) 
+
+
+class ProductRestockRequest(BaseModel):
+    quantity: int = Field(gt=0)
+
+
+class ThemeRequest(BaseModel):
+    theme: Literal["light", "dark"]

@@ -11,8 +11,8 @@ class ProductService:
     async def create_product(self , product_data) :
         return await self.product_repository.create(product_data)
 
-    async def get_all_products(self):
-        return await self.product_repository.get_all()  
+    async def get_all_products(self , filters):
+        return await self.product_repository.get_all(filters)  
 
     async def get_product_by_id(self , product_id : int) :
         return await self.product_repository.get_by_id(product_id)  
@@ -25,3 +25,9 @@ class ProductService:
 
     async def delete_product(self, product_id) :
         return await self.product_repository.delete(product_id) 
+
+    async def restock_product(self,product_id , product_data) :
+        return await self.product_repository.restock(product_id , product_data.quantity)  
+
+    async def display_product_summary(self, product_id) :
+        return await self.product_repository.get_summary(product_id)

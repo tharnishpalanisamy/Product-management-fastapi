@@ -1,6 +1,6 @@
 from models import Category , Product 
 from sqlalchemy.orm import selectinload 
-from sqlalchemy import select
+from sqlalchemy import select , text
 from fastapi import HTTPException , status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -51,8 +51,12 @@ class ProductRepository:
          
 
 
-    async def get_all(self) :
-        statement = select(Product).options(
+    async def get_all(self,filters) :
+        statement = select(Product).limit(
+            filters['limit']
+            ).offset(
+                filters['offset']
+                ).options(
             selectinload(Product.category) , 
             selectinload(Product.files)
         )
@@ -160,3 +164,34 @@ class ProductRepository:
         except Exception : 
             await self.db.rollback() 
             raise 
+
+    async def restock(self , id, quantity) : 
+        statement = text("""
+                        CALL restock_product(:product_id,:quantity) 
+                        """)
+
+        try :
+            await self.db.execute(statement , {'product_id' : id , 'quantity' : quantity})   
+            await self.db.commit() 
+
+            return {
+                'message' : f'Quantity of product {id} is increased by {quantity}' , 
+                'id' : id 
+            } 
+        except Exception :
+            self.db.rollback() 
+            raise  
+
+
+    async def get_summary(self, id) :
+        statement = text("""
+            SELECT *
+            FROM display_summary(:product_id)
+        """)
+
+        result = await self.db.execute(
+            statement,
+            {"product_id": id}
+        )
+
+        return result.mappings().one_or_none()
