@@ -27,3 +27,19 @@ def get_theme(request : Request) :
     return {
         'theme' : theme 
     }
+
+
+
+@router.delete('/theme')
+def delete_theme(response: Response):
+    response.delete_cookie(
+        key='user_theme',
+        httponly=True,
+        secure=False,
+        samesite='lax'
+    )
+
+    return {
+        'message': 'Theme cookie deleted and reseted to default',
+        'theme': 'light'
+    }
