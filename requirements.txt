@@ -6,3 +6,4 @@ pytest
 pydantic_settings
 asyncpg 
 sqlalchemy[asyncio]
+alembic

@@ -55,3 +55,50 @@ BEGIN
 
 	
 	
+
+
+
+//correct function 
+CREATE FUNCTION display_summary
+(
+    p_product_id integer
+)
+ RETURNS TABLE(
+    product_id integer,
+    product_name text,
+    cost_price numeric,
+    quantity integer, 
+    margin numeric, 
+    stock_value numeric, 
+    selling_price numeric, 
+    profit_per_item numeric, 
+    sales_value numeric, 
+    expected_profit numeric)
+ LANGUAGE plpgsql
+AS $$
+BEGIN
+
+RETURN QUERY 
+SELECT 
+	p.id ,
+	p.product_name::TEXT , 
+	p.cost_price::NUMERIC , 
+	p.quantity , 
+	c.margin::NUMERIC , 
+	p.cost_price * p.quantity,
+	p.cost_price +   p.cost_price * (c.margin /  100.0),
+	p.cost_price * (c.margin / 100.0), 
+	(p.cost_price  + p.cost_price *   (c.margin /  100.0)) *  p.quantity,
+	(p.cost_price * (c.margin / 100.0) )  * p.quantity 
+
+	FROM products p JOIN categories c 
+	ON p.category_id = c.id 
+	WHERE p.id = p_product_id;
+
+	IF NOT FOUND THEN 
+		RAISE EXCEPTION 
+			'PRoduct not found with id %' ,
+			p_product_id; 
+	END IF ; 
+END ; 
+$$

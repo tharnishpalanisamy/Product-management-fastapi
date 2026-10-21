@@ -17,7 +17,6 @@ class Product(Base) :
         back_populates='products'
     )
 
-
     files:Mapped[list['ProductImage']] = relationship(
         back_populates='product' , cascade='all, delete-orphan'
     )                                                                                     

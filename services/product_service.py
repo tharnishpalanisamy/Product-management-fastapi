@@ -1,12 +1,12 @@
-from repositories.product_repository import ProductRepository 
-from database.connection import get_db 
-from fastapi import Depends 
-from sqlalchemy.orm import Session 
+from repositories.sqlalchemy_product_repository import ProductRepository 
+from sqlalchemy.ext.asyncio import AsyncSession
+from repositories.product_repository import ProductRepositoryInterface 
 
 
 class ProductService:
-    def __init__(self , db:Session) :
-        self.product_repository = ProductRepository(db)  
+    def __init__(self , db:AsyncSession , repository:ProductRepositoryInterface ) :
+        self.product_repository = repository 
+        self.db = db 
 
     async def create_product(self , product_data) :
         return await self.product_repository.create(product_data)

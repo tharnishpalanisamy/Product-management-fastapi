@@ -2,7 +2,7 @@ from pathlib import Path
 from sqlalchemy.orm import Session
 from exceptions import InvalidFileType , MaximumSizeExceeded , EmptyFileException , ProductNotFoundException
 from uuid import uuid4 
-from repositories.product_image_repository import ProductImageRepository
+from repositories.sqlalchemy_product_image_repository import ProductImageRepository
 
 
 UPLOAD_DIR = Path('upload/product') 
