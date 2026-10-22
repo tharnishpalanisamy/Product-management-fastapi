@@ -1,8 +1,10 @@
 from models import Category 
-from sqlalchemy.orm import selectinload , joinedload
+from sqlalchemy.orm import selectinload 
 from sqlalchemy import select, text 
-from fastapi import HTTPException , status
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession 
+from exceptions import (
+    InvalidCategoryException , DataBaseException , ProductNotFoundException
+    )
 
 from models.product import Product
 
@@ -11,26 +13,25 @@ class ProductRepository:
         self.db = db 
 
     async def create(self , data) ->Product :
-        statement = select(Category).where(
-                Category.id == data.category_id
-            )
         
-        category = await self.db.scalar(statement)
-    
-        if category is None :
-            raise  HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND , 
-                detail = 'Categoyr not found '
-            )
-    
-        product = Product(
-            product_name = data.product_name , 
-            cost_price = data.cost_price ,
-            quantity = data.quantity ,
-            category = category
-        )
-    
         try :
+
+            statement = select(Category).where(
+                    Category.id == data.category_id
+                )
+            
+            category = await self.db.scalar(statement)
+        
+            if category is None :
+                raise InvalidCategoryException(f"catergory not found ")
+        
+            product = Product(
+                product_name = data.product_name , 
+                cost_price = data.cost_price ,
+                quantity = data.quantity ,
+                category = category
+            )
+            
             self.db.add(product)
             await self.db.commit() 
             await self.db.refresh(product) 
@@ -42,13 +43,14 @@ class ProductRepository:
             
             fully_loaded_product = await self.db.scalar(stmt)
             return fully_loaded_product
-    
-        except Exception:
+
+        except InvalidCategoryException :
+            raise 
+        except Exception as error :
             await self.db.rollback() 
     
-            raise HTTPException(
-                status_code = status.HTTP_500_INTERNAL_SERVER_ERROR , 
-                detail = 'Unexpected Error'
+            raise DataBaseException(
+                error 
             )
          
 
@@ -76,9 +78,8 @@ class ProductRepository:
         product =  await self.db.scalar(statement=statement)
     
         if product is None :
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND , 
-                detail = 'Item not found'
+            raise ProductNotFoundException(
+                'Item not found'
             )
     
         return product
@@ -90,9 +91,8 @@ class ProductRepository:
         product =  await self.db.scalar(statement) 
     
         if product is None :
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND , 
-                detail='item not found'
+            raise ProductNotFoundException(
+                'Item not found'
             )
     
         try :
@@ -117,19 +117,18 @@ class ProductRepository:
         product = await self.db.scalar(statement) 
     
         if product is None :
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND , 
-                detail='item not found'
+            raise ProductNotFoundException(
+                'Item not found'
             ) 
     
         try :
-            if data.product_name :
+            if data.product_name is not None  :
                 product.product_name = data.product_name  
-            if data.cost_price :
+            if data.cost_price is not None:
                 product.cost_price = data.cost_price
-            if data.quantity :
+            if data.quantity  is not None :
                 product.quantity = data.quantity
-            if data.category_id :
+            if data.category_id is not None:
                 product.category_id = data.category_id 
     
             await self.db.commit() 
@@ -149,9 +148,8 @@ class ProductRepository:
         product = await self.db.scalar(statement) 
     
         if product is None :
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND , 
-                detail='item not found'
+            raise ProductNotFoundException(
+                'Item not found'
             )
         try : 
             await self.db.delete(product) 
@@ -163,9 +161,11 @@ class ProductRepository:
                 'id' : id
             }
     
-        except Exception : 
+        except Exception as error  : 
             await self.db.rollback() 
-            raise 
+            raise DataBaseException(
+                        error 
+                    ) 
 
     async def restock(self , id, quantity) : 
         statement = text("""
@@ -180,9 +180,11 @@ class ProductRepository:
                 'message' : f'Quantity of product {id} is increased by {quantity}' , 
                 'id' : id 
             } 
-        except Exception :
-            self.db.rollback() 
-            raise  
+        except Exception as error  :
+            await self.db.rollback() 
+            raise DataBaseException(
+                        error 
+                    )  
 
 
     async def get_summary(self, id) :

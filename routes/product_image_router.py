@@ -1,7 +1,6 @@
 from fastapi import APIRouter , UploadFile , File  , Depends
-from database.connection import get_db
-from sqlalchemy.orm import Session 
-from services.product_image_service import ProductImageService
+from services.product_image_service import ProductImageService 
+from dependencies import get_product_image_service
 
 router = APIRouter(
     prefix='/productImages',
@@ -11,8 +10,8 @@ router = APIRouter(
 
 
 @router.post('/{product_id}/images' ) 
-async def create_product_image(product_id:int , file:UploadFile = File(...) , db:Session = Depends(get_db)) :
-    product_image_service = ProductImageService(db)  
+async def create_product_image(product_id:int , file:UploadFile = File(...) , service:ProductImageService = Depends(get_product_image_service)) : 
+    product_image_service = service  
 
     return await product_image_service.upload(
         product_id=product_id , 
@@ -22,8 +21,8 @@ async def create_product_image(product_id:int , file:UploadFile = File(...) , db
 
 
 @router.post('/{product_id}/documents' ) 
-async def create_product_document(product_id:int , file:UploadFile = File(...) ,db:Session = Depends(get_db) ) :
-    product_image_service = ProductImageService(db) 
+async def create_product_document(product_id:int , file:UploadFile = File(...) ,service:ProductImageService = Depends(get_product_image_service) ) :
+    product_image_service = service 
 
     return await product_image_service.upload(
             product_id=product_id , 

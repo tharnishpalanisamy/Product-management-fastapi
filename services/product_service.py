@@ -1,9 +1,8 @@
-from repositories.sqlalchemy_product_repository import ProductRepository 
 from sqlalchemy.ext.asyncio import AsyncSession
 from repositories.product_repository import ProductRepositoryInterface 
 
 
-class ProductService:
+class ProductService:   
     def __init__(self , db:AsyncSession , repository:ProductRepositoryInterface ) :
         self.product_repository = repository 
         self.db = db 

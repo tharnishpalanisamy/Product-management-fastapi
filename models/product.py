@@ -8,8 +8,8 @@ class Product(Base) :
     __tablename__ = 'products' 
 
     id : Mapped[int] = mapped_column(Integer , primary_key=True ) 
-    product_name : Mapped[str] = mapped_column(String(100) , nullable=False)  
-    cost_price : Mapped[float] = mapped_column(Numeric(10,2) , nullable=False) 
+    product_name : Mapped[str] = mapped_column(String(150) , nullable=False)  
+    cost_price : Mapped[float] = mapped_column(Numeric(12,2) , nullable=False) 
     quantity : Mapped[int] = mapped_column(Integer , nullable=False ) 
     category_id : Mapped[int] = mapped_column(Integer , ForeignKey('categories.id'),nullable=False) 
 

@@ -10,7 +10,7 @@ class ProductImage(Base) :
         Integer , primary_key=True 
     )
 
-    product_id : Mapped[int] = mapped_column(Integer , ForeignKey('products.id') , nullable=False) 
+    product_id : Mapped[int] = mapped_column(Integer , ForeignKey('products.id' , ondelete='CASCADE') , nullable=False) 
 
     file_type : Mapped[str] = mapped_column(String(100) , nullable=False) 
     file_path : Mapped[str] = mapped_column(String(500) , nullable=False) 

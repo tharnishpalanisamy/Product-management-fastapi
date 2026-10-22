@@ -3,6 +3,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from models.product import Product
 from models.product_image import ProductImage 
+from exceptions import DataBaseException , ProductNotFoundException
 
 
 class ProductImageRepository:
@@ -22,7 +23,7 @@ class ProductImageRepository:
         existing_product_id = await self.db.scalar(statement)
 
         if existing_product_id is None:
-            return None
+            raise ProductNotFoundException("Item not found")
 
         image = ProductImage(
             product_id=product_id,
@@ -38,7 +39,8 @@ class ProductImageRepository:
             await self.db.refresh(image)
 
             return image
-
-        except Exception:
+        except ProductNotFoundException :
+            raise 
+        except Exception as error :
             await self.db.rollback()
-            raise
+            raise DataBaseException(error)
